@@ -35,7 +35,7 @@ class Tree extends Component {
     this.setState({ selected: [obj] });
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate() {
     if (!this.state.disableAutoScroll) {
       this.scrollToBottom();
     }
@@ -69,7 +69,6 @@ class Tree extends Component {
   render() {
     const { data }  = this.props;
     const { selected, showRecommendedPath, disableAutoScroll } = this.state;
-    console.log('data', data, 'selected', selected);
 
     const filterProps = {
       showRecommendedPath,
