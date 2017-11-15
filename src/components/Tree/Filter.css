@@ -1,0 +1,21 @@
+#filter {
+  list-style: none;
+  padding: 5px 0;
+  margin: 0 0 0 -5px;
+}
+
+#filter > li {
+  display: inline-block;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+#filter > li > .checkbox {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#filter > li > .checkbox label {
+  font-size: 15px;
+  cursor: pointer;
+}
