@@ -5,84 +5,44 @@ import './Card.css';
 class Card extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      selectedIds: [],
-      selected: {}
-    };
 
     this.handleChange = this.handleChange.bind(this);
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    const { selected, selectedIds } = this.state;
-
-    if (
-      selected.id !== prevState.selected.id ||
-      selectedIds.length !== prevState.selectedIds.length
-    ) {
-      const { data, updateSelected } = this.props;
-
-      const currSelected = selected.id ? selected :
-        selectedIds[selectedIds.length - 1];
-
-      const obj = data.reduce((obj, curr) => {
-        if (curr.parentId && curr.parentId === currSelected.id) {
-          obj.options = [...obj.options, curr];
-        }
-        return obj;
-      }, { options: [] });
-
-      if (obj.options.length > 0) {
-        obj.id = currSelected.value.name;
-        updateSelected(obj, currSelected.index);
-      }
-    }
-  }
-
   handleChange(event) {
-    const { data, index } = this.props;
-
     const id = event.target.value;
-    const value = data.find(d => d.id === id);
+    const selectedValue = this.props.options.find(elm => elm.id === id);
 
-    const payload = { id: value.id, index, value };
-
-    if (value.multiSelect) {
-      this.setState((prevState) => ({
-        selectedIds: [...prevState.selectedIds, payload]
-      }))
-    } else  {
-      this.setState({ selected: payload });
-    }
+    this.props.handleChange(selectedValue);
   }
 
   render() {
-    const { item, showRecommendedPath } = this.props;
-    const { selected, selectedIds } = this.state;
-    const title = selected.id && item.options.length > 0 &&
-      item.options.find(elm => elm.id === selected.id).name;
-    const backgroundColor = selected.value ? selected.value.color : null;
+    const { selected, options, showRecommendedPath } = this.props;
+    let title = 'Categories';
+    let backgroundColor = null;
+
+    if (selected) {
+      title = selected.name;
+      backgroundColor = selected.color || null;
+    }
     return (
       <article className="card">
         <header style={{ backgroundColor }}>
-          <h6>{title || 'Categories'}</h6>
+          <h6>{title}</h6>
         </header>
         <main>
           <div className="radio-group">
-            {item.options.map((elm) => {
-              const id = elm.id;
+            {options.map(({ id, name, selected, multiSelect, recommended }) => {
               return (
                 <label key={id} className="radio-inline">
                   <input
                     type="radio"
                     value={id}
-                    checked={
-                      selected.id === id || !!selectedIds.find(elm => elm.id === id)
-                    }
+                    checked={selected}
                     onChange={this.handleChange}
                   />
-                  <span>{elm.name}</span>{' '}
-                  {showRecommendedPath && elm.recommended &&
+                  <span>{name}</span>{' '}
+                  {showRecommendedPath && recommended &&
                     <span
                       className="fa fa-star fa-lg"
                       style={{ color: 'gold' }}
@@ -99,11 +59,9 @@ class Card extends Component {
 }
 
 Card.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
+  options: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
   showRecommendedPath: PropTypes.bool,
-  updateSelected: PropTypes.func.isRequired,
-  item: PropTypes.shape({}).isRequired,
-  index: PropTypes.number.isRequired
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default Card;

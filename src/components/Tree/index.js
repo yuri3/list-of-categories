@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import Filter from './Filter';
-import Card from './Card';
+import List from './List';
 
 class Tree extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected: [],
+      data: [],
       showRecommendedPath: false,
       disableAutoScroll: false
     };
@@ -16,23 +15,13 @@ class Tree extends Component {
     this.toggleRecommendedPath = this.toggleRecommendedPath.bind(this);
     this.toggleDisableAutoScroll = this.toggleDisableAutoScroll.bind(this);
     this.scrollToBottom = this.scrollToBottom.bind(this);
-    this.updateSelected = this.updateSelected.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+
+    this.getAllDescendantIds = this.getAllDescendantIds.bind(this);
   }
 
   componentDidMount() {
-    let id = null;
-    const obj = this.props.data.reduce((obj, curr) => {
-      if (!curr.parentId && !obj[curr.id]) {
-        obj.options = [...obj.options, curr];
-
-        if (curr.title !== id) {
-          id = curr.title;
-        }
-      }
-      return obj;
-    }, { options: [] });
-    obj.id = id;
-    this.setState({ selected: [obj] });
+    this.setState({ data: this.props.data });
   }
 
   componentDidUpdate() {
@@ -55,47 +44,62 @@ class Tree extends Component {
     this.list.scrollIntoView();
   }
 
-  updateSelected(data, index) {
-    this.setState((prevState) => {
-      return {
-        selected: [
-          ...prevState.selected.filter((elm, i) => i <= index),
-          data
-        ]
+  getAllDescendantIds(state, id) {
+    const elmsToDelete = state.filter(elm => elm.parentId === id);
+    return elmsToDelete.reduce((acc, curr) => (
+      [...acc, curr.id, ...this.getAllDescendantIds(state, curr.id)]
+    ), []);
+  }
+
+  handleChange(selectedValue) {
+    const prevSelected = this.state.data.find(elm => (
+       elm.id !== selectedValue.parentId &&
+       elm.parentId === selectedValue.parentId && elm.selected
+    ));
+
+    let descendantIds;
+    if (prevSelected) {
+      descendantIds = [
+        prevSelected.id,
+        ...this.getAllDescendantIds(this.state.data, prevSelected.id)
+      ]
+    }
+
+    const data = this.state.data.map(d => {
+      const target = descendantIds && descendantIds.find(id => id === d.id);
+      if (target && !d.multiSelect && d.selected) {
+        return {...d, selected: false};
       }
+      if (d.id === selectedValue.id) {
+        return { ...d, selected: true };
+      }
+      return d;
     });
+
+    this.setState({ data });
   }
 
   render() {
-    const { data }  = this.props;
-    const { selected, showRecommendedPath, disableAutoScroll } = this.state;
-
-    const filterProps = {
-      showRecommendedPath,
-      disableAutoScroll,
-      toggleRecommendedPath: this.toggleRecommendedPath,
-      toggleDisableAutoScroll: this.toggleDisableAutoScroll
-    };
-
-    const cardProps = {
-      data,
-      showRecommendedPath,
-      updateSelected: this.updateSelected,
-    };
+    const { data, showRecommendedPath, disableAutoScroll } = this.state;
 
     return (
       <div ref={input => this.list = input}>
-        <Filter {...filterProps} />
-        <ReactCSSTransitionGroup
-          transitionName="fade"
-          transitionLeave={false}
-          transitionEnterTimeout={500}
-          transitionLeaveTimeout={0}
-        >
-          {selected.map((item, i) =>
-            <Card key={item.id} item={item} index={i} {...cardProps} />
-          )}
-        </ReactCSSTransitionGroup>
+        {data.length > 0 &&
+          <div>
+            <Filter
+              showRecommendedPath={showRecommendedPath}
+              disableAutoScroll={disableAutoScroll}
+              toggleRecommendedPath={this.toggleRecommendedPath}
+              toggleDisableAutoScroll={this.toggleDisableAutoScroll}
+            />
+            <List
+              data={data}
+              parentId={null}
+              showRecommendedPath={showRecommendedPath}
+              handleChange={this.handleChange}
+            />
+          </div>
+        }
       </div>
     )
   }

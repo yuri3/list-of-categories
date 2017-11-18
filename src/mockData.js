@@ -1,6 +1,7 @@
 const mockData = [
   {
     id: '1',
+    parentId: null,
     title: 'Category',
     color: 'red',
     name: 'Data Pre-processing',
@@ -111,6 +112,7 @@ const mockData = [
 
   {
     id: '2',
+    parentId: null,
     title: 'Category',
     color: 'green',
     name: 'Variant Discovery',
@@ -203,6 +205,7 @@ const mockData = [
 
   {
     id: '3',
+    parentId: null,
     title: 'Category',
     color: 'green',
     name: 'Variant Refinement',
@@ -266,6 +269,7 @@ const mockData = [
 
   {
     id: '4',
+    parentId: null,
     title: 'Category',
     color: 'green',
     name: 'Phenotype Interpretation',
